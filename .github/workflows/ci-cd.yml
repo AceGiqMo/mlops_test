@@ -50,6 +50,14 @@ jobs:
         with:
           name: model
 
+      - name: Set lowercase repository owner
+        run: |
+          echo "OWNER_LC=${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
+
+      - name: Use lowercase owner
+        run: |
+          echo "The lowercase repository owner is ${{ env.OWNER_LC }}"
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -63,8 +71,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/iris-api:latest
+            ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
+            ghcr.io/${{ env.OWNER_LC }}/iris-api:latest
 
   deploy:
     needs: build
@@ -90,10 +98,10 @@ jobs:
       - name: Pull and run
         run: |
           docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker pull ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
+          docker pull ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
           docker stop iris-api || true
           docker rm iris-api || true
             docker run -d --name iris-api --restart=always \
               -p 8000:8000 -e ENV=prod -e API_KEY=${{ secrets.API_KEY }} \
-              ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
+              ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
 
