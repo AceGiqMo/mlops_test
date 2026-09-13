@@ -43,20 +43,20 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image: ${{ steps.image.outputs.name }}   # отдаём имя образа дальше
     steps:
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          OWNER=$(echo "$GITHUB_REPOSITORY_OWNER" | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/$OWNER/iris-api" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
 
       - uses: actions/download-artifact@v4
         with:
           name: model
-
-      - name: Lowercase the owner
-        run: |
-          echo "OWNER_LC=${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]' >> $GITHUB_ENV
-
-      - name: Use the lowercase owner
-        run: |
-          echo "The owner is: ${{ env.OWNER_LC }}"
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -71,8 +71,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
-            ghcr.io/${{ env.OWNER_LC }}/iris-api:latest
+            ${{ steps.image.outputs.name }}/iris-api:${{ github.sha }}
+            ${{ steps.image.outputs.name }}/iris-api:latest
 
   deploy:
     needs: build
@@ -95,13 +95,15 @@ jobs:
 #            docker run -d --name iris-api --restart=always \
 #              -p 8000:8000 -e ENV=prod -e API_KEY=${{ secrets.API_KEY }} \
 #              ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
-      - name: Pull and run
+
+      - name: Pull and restart container
+        env:
+          IMAGE: ${{ needs.build.outputs.image }}:${{ github.sha }}
+          API_KEY: ${{ secrets.API_KEY }}
         run: |
-          docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker pull ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
+          docker pull "$IMAGE"
           docker stop iris-api || true
           docker rm iris-api || true
-            docker run -d --name iris-api --restart=always \
-              -p 8000:8000 -e ENV=prod -e API_KEY=${{ secrets.API_KEY }} \
-              ghcr.io/${{ env.OWNER_LC }}/iris-api:${{ github.sha }}
+          docker run -d --name iris-api --restart=always \
+            -p 8000:8000 -e ENV=prod -e API_KEY="$API_KEY" "$IMAGE"
 
