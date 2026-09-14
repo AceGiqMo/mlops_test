@@ -78,7 +78,7 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}   # transferred into docker-compose.yml as ${IMAGE_TAG}
           API_KEY: ${{ secrets.API_KEY }}
-          FULL_IMAGE_NAME: "${{ steps.image.outputs.name }}:${{ env.IMAGE_TAG }}"
+          FULL_IMAGE_NAME: "${{ needs.build.outputs.image }}:${{ github.sha }}"
         run: |
           docker compose pull            # скачивает образы (iris-api с новым тегом, mlflow если его нет)
           docker compose up -d           # создаёт/пересоздаёт контейнеры по описанию в docker-compose.yml
