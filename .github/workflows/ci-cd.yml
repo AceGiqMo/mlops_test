@@ -74,8 +74,6 @@ jobs:
     permissions:
       packages: read
     steps:
-      - uses: actions/checkout@v4        # downloads the whole repository, including docker-compose.yml
-
       - name: Deploy stack
         env:
           IMAGE_TAG: ${{ github.sha }}   # transferred into docker-compose.yml as ${IMAGE_TAG}
