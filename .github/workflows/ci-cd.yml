@@ -1,16 +1,41 @@
-name: deploy
+name: ci-cd
 
 on:
-  workflow_run:
-    workflows: ["train"] # Exact name of your first workflow
-    types:
-      - completed
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-    # Optional: Ensure it only runs if the first workflow succeeded
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Train model
+        run: |
+          mlflow server --port 5000 &
+          python train.py
+
+      - name: Model quality gate
+        run: python check_model.py
+
+      - name: Run tests
+        run: pytest test_main.py -v
+
+  build:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
@@ -43,6 +68,7 @@ jobs:
 
   deploy:
     needs: build
+    if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     environment: production
     permissions:
@@ -54,8 +80,6 @@ jobs:
         env:
           IMAGE_TAG: ${{ github.sha }}   # transferred into docker-compose.yml as ${IMAGE_TAG}
           API_KEY: ${{ secrets.API_KEY }}
-          MODEL_NAME: iris-model
-          MODEL_VERSION: latest
         run: |
           docker compose pull            # скачивает образы (iris-api с новым тегом, mlflow если его нет)
           docker compose up -d           # создаёт/пересоздаёт контейнеры по описанию в docker-compose.yml
