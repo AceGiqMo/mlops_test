@@ -23,6 +23,8 @@ services:                      # list of application containers
       - API_KEY=${API_KEY}
       - MLFLOW_URI=http://mlflow:5000   # service name = DNS-name inside the compose net
       - MODEL_NAME=iris-model
+      - MODEL_NAME=${MODEL_NAME:-iris-model}
+      - MODEL_VERSION=${MODEL_VERSION:-latest}
     depends_on:
       mlflow:
         condition: service_healthy      # start only of mlflow is healthy

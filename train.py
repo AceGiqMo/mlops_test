@@ -2,6 +2,7 @@ import pickle
 import mlflow
 import mlflow.sklearn
 from datetime import datetime, timezone
+import os
 
 import sklearn
 from sklearn.datasets import load_iris
@@ -10,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
 # Настройка MLflow
-mlflow.set_tracking_uri("http://localhost:5000")
+mlflow.set_tracking_uri(os.getenv("MLFLOW_URI", "http://localhost:5000"))
 mlflow.set_experiment("iris-classification")
 
 FEATURE_NAMES = ["sepal_length", "sepal_width", "petal_length", "petal_width"]

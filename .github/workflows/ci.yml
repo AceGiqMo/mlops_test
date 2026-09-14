@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest httpx
+          pip install pytest httpx mlflow scikit-learn
 
       - name: Run tests
         run: pytest test_main.py -v
