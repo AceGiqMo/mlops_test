@@ -13,7 +13,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN useradd --create-home appuser
-COPY --chown=appuser:appuser main.py model.pkl ./
+COPY --chown=appuser:appuser main.py ./
 USER appuser
 
 EXPOSE 8000
