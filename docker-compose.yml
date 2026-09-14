@@ -15,7 +15,7 @@ services:                      # list of application containers
       retries: 5
 
   iris-api:
-    image: ${{ steps.image.outputs.name }}:${IMAGE_TAG:-latest}   # tag extracted from the env
+    image: ${FULL_IMAGE_NAME}   # tag extracted from the env
     ports:
       - "8000:8000"
     environment:
