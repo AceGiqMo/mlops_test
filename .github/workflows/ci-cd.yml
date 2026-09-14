@@ -71,8 +71,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ steps.image.outputs.name }}/iris-api:${{ github.sha }}
-            ${{ steps.image.outputs.name }}/iris-api:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+            ${{ steps.image.outputs.name }}:latest
 
   deploy:
     needs: build
