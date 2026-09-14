@@ -79,7 +79,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     environment: production
-    permission:
+    permissions:
       packages: read
     steps:
       - uses: actions/checkout@v4        # downloads the whole repository, including docker-compose.yml
