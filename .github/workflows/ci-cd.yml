@@ -79,31 +79,17 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
     environment: production
-    permissions:
+    permission:
       packages: read
     steps:
-#      - name: Deploy via SSH
-#        uses: appleboy/ssh-action@v1.0.3
-#        with:
-#          host: ${{ secrets.DEPLOY_HOST }}
-#          username: ${{ secrets.DEPLOY_USER }}
-#          key: ${{ secrets.DEPLOY_SSH_KEY }}
-#          script: |
-#            docker pull ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
-#            docker stop iris-api || true
-#            docker rm iris-api || true
-#            docker run -d --name iris-api --restart=always \
-#              -p 8000:8000 -e ENV=prod -e API_KEY=${{ secrets.API_KEY }} \
-#              ghcr.io/${{ github.repository_owner }}/iris-api:${{ github.sha }}
+      - uses: actions/checkout@v4        # downloads the whole repository, including docker-compose.yml
 
-      - name: Pull and restart container
+      - name: Deploy stack
         env:
-          IMAGE: ${{ needs.build.outputs.image }}:${{ github.sha }}
+          IMAGE_TAG: ${{ github.sha }}   # transferred into docker-compose.yml as ${IMAGE_TAG}
           API_KEY: ${{ secrets.API_KEY }}
         run: |
-          docker pull "$IMAGE"
-          docker stop iris-api || true
-          docker rm iris-api || true
-          docker run -d --name iris-api --restart=always \
-            -p 8000:8000 -e ENV=prod -e API_KEY="$API_KEY" "$IMAGE"
+          docker compose pull            # скачивает образы (iris-api с новым тегом, mlflow если его нет)
+          docker compose up -d           # создаёт/пересоздаёт контейнеры по описанию в docker-compose.yml
+          docker compose ps              # показывает статус всех сервисов
 

@@ -7,8 +7,7 @@ LABEL org.opencontainers.image.title="iris-api" \
 WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    MODEL_PATH=/app/model.pkl
+    PYTHONDONTWRITEBYTECODE=1
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

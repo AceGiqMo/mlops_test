@@ -2,3 +2,5 @@ fastapi==0.141.1
 uvicorn==0.52.4
 scikit-learn==1.9.1
 pydantic==2.13.5
+pyarrow==23.0.0
+mlflow==3.16.0
