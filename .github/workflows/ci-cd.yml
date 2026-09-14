@@ -20,16 +20,19 @@ jobs:
       - name: Train model
         run: |
           cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
+          source .venv/bin/activate
           python train.py
 
       - name: Model quality gate
         run: |
           cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
+          source .venv/bin/activate
           python check_model.py
 
       - name: Run tests
         run: |
           cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
+          source .venv/bin/activate
           pytest test_main.py -v
 
   build:
