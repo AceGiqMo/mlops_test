@@ -20,7 +20,6 @@ jobs:
       - name: Train model
         run: |
           cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
-          mlflow server --port 5000 &
           python train.py
 
       - name: Model quality gate
