@@ -5,7 +5,7 @@ services:                      # list of application containers
     ports:
       - "5000:5000"
     volumes:
-      - tmp/mlflow-data:/mlflow-data        # named volume: data survives between runs
+      - /tmp/mlflow-data:/mlflow-data        # named volume: data survives between runs
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db
     healthcheck:
