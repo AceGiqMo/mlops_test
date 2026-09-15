@@ -93,9 +93,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Stop test MLflow instance
+      # ИСПРАВЛЕНО: Находим любой контейнер, занимающий порт 5000 или 8000, и принудительно тушим его
+      - name: Hard-kill any containers holding ports 5000 or 8000
         run: |
-          docker rm -f mlflow-test || true
+          echo "Checking for containers holding port 5000..."
+          CONTAINER_5000=$(docker ps -q --filter "publish=5000")
+          if [ ! -z "$CONTAINER_5000" ]; then
+            echo "Killing container $CONTAINER_5000 on port 5000"
+            docker rm -f $CONTAINER_5000
+          fi
+
+          echo "Checking for containers holding port 8000..."
+          CONTAINER_8000=$(docker ps -q --filter "publish=8000")
+          if [ ! -z "$CONTAINER_8000" ]; then
+            echo "Killing container $CONTAINER_8000 on port 8000"
+            docker rm -f $CONTAINER_8000
+          fi
+      
 
       - name: Down existing stack
         env:
