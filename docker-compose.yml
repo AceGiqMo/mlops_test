@@ -1,7 +1,7 @@
 services:                      # list of application containers
   mlflow:
     image: ghcr.io/mlflow/mlflow:v3.16.0
-    command: mlflow server --host 0.0.0.0 --port 5000 --expose-config-to-client
+    command: mlflow server --host 0.0.0.0 --port 5000
     ports:
       - "5000:5000"
     volumes:
@@ -9,7 +9,7 @@ services:                      # list of application containers
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -21,7 +21,7 @@ services:                      # list of application containers
     environment:
       - ENV=prod
       - API_KEY=${API_KEY}
-      - MLFLOW_URI=http://mlflow:5000   # service name = DNS-name inside the compose net
+      - MLFLOW_URI=http://172.17.0.1:5000      # service name = DNS-name inside the compose net
       - MODEL_NAME=iris-model
       - MODEL_NAME=${MODEL_NAME:-iris-model}
       - MODEL_VERSION=${MODEL_VERSION:-latest}
