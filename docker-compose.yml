@@ -1,11 +1,11 @@
 services:                      # list of application containers
   mlflow:
     image: ghcr.io/mlflow/mlflow:v3.16.0
-    command: mlflow server --host 0.0.0.0 --port 5000
+    command: mlflow server --host 0.0.0.0 --port 5000 --expose-config-to-client
     ports:
       - "5000:5000"
     volumes:
-      - /tmp/mlflow-data:/mlflow-data        # named volume: data survives between runs
+      - mlflow-data:/mlflow-data        # named volume: data survives between runs
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db
     healthcheck:
