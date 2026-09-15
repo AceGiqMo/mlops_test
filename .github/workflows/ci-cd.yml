@@ -17,12 +17,12 @@ jobs:
           python3.14 -m venv .venv
           if ! curl -s http://localhost:5000/health > /dev/null; then
             echo "MLflow not running, starting..."
-            docker run -d -p 5000:5000 \
+            docker run -d --name mlflow-test -p 5000:5000 \
             -v /tmp/mlflow-data:/mlflow-data \
             -e MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db \
             ghcr.io/mlflow/mlflow:v3.16.0 \
             mlflow server --host 0.0.0.0 --port 5000
-            sleep 10  # даём MLflow время подняться
+            sleep 10
           fi
 
       - name: Install dependencies
@@ -92,6 +92,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stop test MLflow instance
+        run: |
+          docker rm -f mlflow-test || true
 
       - name: Deploy stack
         env:
