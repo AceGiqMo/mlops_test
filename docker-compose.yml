@@ -9,7 +9,7 @@ services:                      # list of application containers
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0')"]
       interval: 10s
       timeout: 5s
       retries: 5
