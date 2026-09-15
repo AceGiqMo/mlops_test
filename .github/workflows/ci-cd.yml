@@ -21,7 +21,7 @@ jobs:
             -v /tmp/mlflow-data:/mlflow-data \
             -e MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db \
             ghcr.io/mlflow/mlflow:v3.16.0 \
-            mlflow server --host 0.0.0.0 --port 5000
+            mlflow server --host 0.0.0.0 --port 5000 --artifacts-destination /mlflow-data/artifacts
             sleep 10
           fi
 
