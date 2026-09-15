@@ -97,6 +97,13 @@ jobs:
         run: |
           docker rm -f mlflow-test || true
 
+      - name: Down existing stack
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          FULL_IMAGE_NAME: "${{ needs.build.outputs.image }}:${{ github.sha }}"
+        run: |
+          docker compose down --remove-orphans || true
+
       - name: Deploy stack
         env:
           IMAGE_TAG: ${{ github.sha }}   # transferred into docker-compose.yml as ${IMAGE_TAG}
