@@ -10,28 +10,34 @@ jobs:
   test:
     runs-on: self-hosted
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure MLflow is running
+        run: |
+          if ! curl -s http://localhost:5000/health > /dev/null; then
+            echo "MLflow not running, starting..."
+            docker compose up mlflow -d
+            sleep 10  # даём MLflow время подняться
+          fi
+
       - name: Install dependencies
         run: |
-          cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
           source .venv/bin/activate
-          .venv/bin/pip3.14 install -r requirements.txt
-          .venv/bin/pip3.14 install pytest httpx
+          pip install -r requirements.txt
+          pip install pytest httpx
 
       - name: Train model
         run: |
-          cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
           source .venv/bin/activate
           python train.py
 
       - name: Model quality gate
         run: |
-          cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
           source .venv/bin/activate
           python check_model.py
 
       - name: Run tests
         run: |
-          cd /Users/acegiqmo/Desktop/PL/Python/mlops_test
           source .venv/bin/activate
           pytest test_main.py -v
 
