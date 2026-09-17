@@ -1,10 +1,13 @@
 services:                      # list of application containers
   mlflow:
     image: ghcr.io/mlflow/mlflow:v3.16.0
-    command: mlflow server --host 0.0.0.0 --port 5000 --default-artifact-root /mlflow-data/artifacts
-      - "5000:5000"
+    command: mlflow server --host 0.0.0.0 --port 5000
+             --default-artifact-root mlflow-artifacts:/artifacts --backend-store-uri sqlite:////mlflow-data/mlflow.db
+             --artifacts-destination=/mlflow-data/artifacts --allowed-hosts "*"
+    ports:
+      - "5000:5000"   # Docker understands that it should expose the port outside
     volumes:
-      - /tmp/mlflow-data:/mlflow-data        # named volume: data survives between runs
+      - ./mlflow-data:/mlflow-data
     environment:
       - MLFLOW_BACKEND_STORE_URI=sqlite:////mlflow-data/mlflow.db
     healthcheck:
@@ -13,18 +16,63 @@ services:                      # list of application containers
       timeout: 5s
       retries: 5
 
-  iris-api:
-    image: ${FULL_IMAGE_NAME}   # tag extracted from the env
+  wine-api:
+    build:
+      context: .
+      dockerfile: ./code/deployment/api/Dockerfile
+    image: wine-api:local
     ports:
       - "8000:8000"
+    volumes:
+      - ./mlflow-data:/mlflow-data
     environment:
       - ENV=prod
-      - API_KEY=${API_KEY}
-      - MLFLOW_URI=http://172.17.0.1:5000      # service name = DNS-name inside the compose net
-      - MODEL_NAME=iris-model
-      - MODEL_NAME=${MODEL_NAME:-iris-model}
-      - MODEL_VERSION=${MODEL_VERSION:-latest}
+      - API_KEY=secret
+      - MLFLOW_URI=http://mlflow:5000      # service name = DNS-name inside the compose net
+      - MODEL_NAME=wine-model
+      - MODEL_VERSION=1
     depends_on:
       mlflow:
         condition: service_healthy      # start only of mlflow is healthy
     restart: always
+
+  airflow:
+    image: apache/airflow:2.9.2-python3.12
+    user: "${AIRFLOW_UID:-50000}:0"
+    command: standalone
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mounting DAG-files
+      - ./services/airflow/dags:/opt/airflow/dags
+      # Mounting project's root, so Airflow had access to train.py, Dockerfile and data
+      - .:/opt/airflow/project
+      # Mounting Docker-socket, so Airflow could control containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      - airflow-pip-cache:/root/.cache/pip
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTION_TIMEOUT=300
+      # Pointing Airflow where to find MLflow inside the Docker net
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    depends_on:
+      mlflow:
+        condition: service_healthy
+
+  streamlit:
+    build:
+      context: ./code/deployment/app
+      dockerfile: Dockerfile
+    image: wine-streamlit:local
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://wine-api:8000   # DNS-service name inside the compose-net
+      - API_KEY=secret                 # The same key as in wine-api
+    depends_on:
+      wine-api:
+        condition: service_healthy
+    restart: always
+
+volumes:
+  airflow-pip-cache:
