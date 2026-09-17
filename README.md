@@ -10,12 +10,10 @@ docker compose exec airflow airflow users create \
   --role Admin \
   --email ace.giqmo@example.com \
   --password admin
-  
-docker compose exec airflow airflow dags trigger 
 ```
 
 Now you can open **Apache Airflow UI** by the address `http://localhost:8080` and wait until the DAG
-will finish the execution
+will finish the execution. If it asks for **login** and **password**, then enter **Login: acegiqmo, Password: admin**
 
 After that you open the web app made with **Streamlit**, accessed by the address `http://localhost:8501`.
 Here you can enter your **input** and get **prediction**
